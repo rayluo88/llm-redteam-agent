@@ -1,7 +1,7 @@
 [project]
 name = "llm-redteam-agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "Automated multi-agent LLM red-teaming system using LangGraph, vLLM, and Gemma 4"
 requires-python = ">=3.13"
 dependencies = [
     "datasets>=4.8.5",
@@ -12,3 +12,7 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "rich>=15.0.0",
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]

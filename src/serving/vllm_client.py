@@ -30,7 +30,7 @@ def chat(
     system: str,
     user: str,
     temperature: float = 0.8,
-    max_tokens: int = 512,
+    max_tokens: int = 2048,
 ) -> str:
     response = client.chat.completions.create(
         model=model,
@@ -41,13 +41,14 @@ def chat(
         temperature=temperature,
         max_tokens=max_tokens,
     )
-    return response.choices[0].message.content.strip()
+    content = response.choices[0].message.content or ""
+    return content.strip()
 
 
 def target_chat(system: str, user: str, **kwargs) -> str:
     return chat(
         TARGET_CLIENT,
-        model=os.getenv("TARGET_MODEL", "gemma4:26b-a4b"),
+        model=os.getenv("TARGET_MODEL", "gemma4:26b"),
         system=system,
         user=user,
         **kwargs,
@@ -67,7 +68,7 @@ def attacker_chat(system: str, user: str, **kwargs) -> str:
 def judge_chat(system: str, user: str, **kwargs) -> str:
     return chat(
         TARGET_CLIENT,
-        model=os.getenv("JUDGE_MODEL", "gemma4:26b-a4b"),
+        model=os.getenv("JUDGE_MODEL", "gemma4:26b"),
         system=system,
         user=user,
         temperature=0.0,
