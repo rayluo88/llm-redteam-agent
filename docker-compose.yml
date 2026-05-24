@@ -1,0 +1,66 @@
+services:
+  target:
+    image: vllm/vllm-openai:latest
+    runtime: nvidia
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN}
+    command: >
+      --model google/gemma-4-E4B-it
+      --served-model-name gemma-4-e4b-it
+      --max-model-len 8192
+      --gpu-memory-utilization 0.7
+    ports:
+      - "8000:8000"
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  attacker:
+    image: vllm/vllm-openai:latest
+    runtime: nvidia
+    environment:
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN}
+    command: >
+      --model google/gemma-4-E4B-it
+      --served-model-name gemma-4-e4b-it
+      --max-model-len 8192
+      --gpu-memory-utilization 0.25
+      --port 8001
+    ports:
+      - "8001:8001"
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  agent:
+    build: .
+    depends_on:
+      - target
+      - attacker
+    environment:
+      - TARGET_BASE_URL=http://target:8000/v1
+      - ATTACKER_BASE_URL=http://attacker:8001/v1
+      - TARGET_MODEL=gemma-4-e4b-it
+      - ATTACKER_MODEL=gemma-4-e4b-it
+      - JUDGE_MODEL=gemma-4-e4b-it
+      - OPENAI_API_KEY=vllm
+      - NUM_ATTACKS=${NUM_ATTACKS:-50}
+      - MAX_ROUNDS=${MAX_ROUNDS:-5}
+    command: python scripts/run_eval.py
+    volumes:
+      - ./results:/app/results
+
+volumes:
+  hf-cache:
