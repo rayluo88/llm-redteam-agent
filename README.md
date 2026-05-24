@@ -112,11 +112,24 @@ TARGET_MODEL=google/gemma-4-E4B-it
 
 No code changes required — the same client works against any OpenAI-compatible endpoint.
 
+### Docker (vLLM + agent, GPU required)
+
+```bash
+cp .env.example .env
+# Set HF_TOKEN in .env (required to pull Gemma 4 from HuggingFace)
+
+docker compose up
+```
+
+Spins up two vLLM containers (target on port 8000, attacker on 8001) and runs the eval agent against them. Requires an NVIDIA GPU with the NVIDIA Container Toolkit installed.
+
 ---
 
 ## Project Structure
 
 ```
+Dockerfile
+docker-compose.yml
 src/
 ├── agents/
 │   ├── attacker.py       # generates adversarial prompts
